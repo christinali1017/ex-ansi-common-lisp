@@ -16,8 +16,6 @@
                 (or target
                     (bfs end (append (cdr queue) np) net))))))))
 
-
-(critique
 (defun new-paths (path node net end)
   (let ((new-paths nil) (target nil)
         (neighbors (cdr (assoc node net))))
@@ -27,15 +25,15 @@
         (when (eql (is-circle path cur) null)
           (if (eql cur end)
               (setf target (reverse (cons cur path)))
-            (setf new-paths (cons
-                             (cons cur path)
-                             new-paths))))))))
-)
+            (push (cons cur path) new-paths)))))))
+
 
 (defun is-circle (path n)
   (cond ((null path) null)
         ((eql n (car path)) t)
         (t (is-circle (cdr path) n))))
+
+
 
 
 
