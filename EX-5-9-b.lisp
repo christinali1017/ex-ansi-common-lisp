@@ -9,20 +9,16 @@
       nil
     (let ((path (car queue)))
       (let ((node (car path)))
-        (if (eql node end)
-            (reverse path)
-          (let ((paths (new-paths path node net end)))
-            (if (assoc end paths)
-                (reverse (assoc end paths))
-              (bfs end (append (cdr queue) paths) net))))))))
+        (let ((neibs (assoc node net)))
+          (if (member end neibs)
+              (reverse (cons end path))
+            (bfs end (append (cdr queue) (new-paths path node net end)) net)))))))
 
 
 (defun new-paths (path node net end)
   (mapcan #'(lambda (n)
-              (let ((res (when (null (member n path))
-                           (cons n path))))
-                (if (null res) nil
-                  (list res))))
+              (if (member n path) nil
+                (list (cons n path))))           
     (cdr (assoc node net))))
 
 
