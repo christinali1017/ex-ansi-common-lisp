@@ -9,7 +9,7 @@
   (do ((step (if (< start end) 1 -1))
        (n start (+ step n)))
       ((or (= n end) (not (funcall fn n)))
-       (or (= n end) (funcall fn n)))))
+       (= n end))))
 
 (defun find-range (fn start end)
   (do ((step (if (< start end) 1 -1))
