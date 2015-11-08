@@ -1,19 +1,36 @@
-
 (defun solve (f min max epsilon)
   (let* ((res-min (funcall f min))
          (res-max (funcall f max)))
     (cond ((= res-min 0) res-min)
           ((= res-max 0) res-max)
           ((< 0 (* res-min res-max)) nil)
-          (t (actual-search f res-min res-max min max epsilon)))))
+          ((> 0 res-min) (actual-search f  min max epsilon))
+          (t (actual-search f max min epsilon)))))
 
-(defun actual-search (f res-min res-max min max epsilon)
+(defun actual-search (f min max epsilon)
   (let* ((mid (* 0.5 (+ min max)))
-        (res-mid (funcall f mid)))
+         (res-mid (funcall f mid)))
+    (cond ((< (abs (- max min)) epsilon) mid)
+          ((= res-mid 0) mid)
+          ((> 0 res-mid) (actual-search f mid max epsilon))
+          (t (actual-search f min mid epsilon)))))
+
+
+(defun solve-1 (f min max epsilon)
+  (let* ((res-min (funcall f min))
+         (res-max (funcall f max)))
+    (cond ((= res-min 0) res-min)
+          ((= res-max 0) res-max)
+          ((< 0 (* res-min res-max)) nil)
+          (t (actual-search-1 f res-min res-max min max epsilon)))))
+
+(defun actual-search-1 (f res-min res-max min max epsilon)
+  (let* ((mid (* 0.5 (+ min max)))
+         (res-mid (funcall f mid)))
     (cond ((< (- max min) epsilon) mid)
           ((= res-mid 0) mid)
-          ((< 0 (* res-min res-mid)) (actual-search f res-mid res-max mid max epsilon))
-          ((< 0 (* res-max res-mid)) (actual-search f res-min res-mid min mid epsilon))
+          ((< 0 (* res-min res-mid)) (actual-search-1 f res-mid res-max mid max epsilon))
+          ((< 0 (* res-max res-mid)) (actual-search-1 f res-min res-mid min mid epsilon))
           (t nil))))
 
 
