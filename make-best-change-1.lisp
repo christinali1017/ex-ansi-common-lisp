@@ -1,37 +1,28 @@
 
 (defun make-best-change (num &optional (coins '(25 10 5 1)))
-  (let ((best (make-list (length coins) :initial-element num)))
-    (make-change num coins best nil)
-    (print best)
-    best))
-  
+  (values-list (reverse (car (make-change num coins nil nil)))))
 
 ;calculate all possible changes
-(defun make-change (num coins best current)
-  ;(print best)
-  ;(print current)
-  (cond ((null coins) (setq best (compare-coins best (get-changes num current))))
-        (t (do ((count (floor num (car coins)) (1- count)))
-               ((< count 0))
-             (make-change  (- num (* count (car coins))) (cdr coins) best (cons count current))))))
-                                                                   
+(defun make-change (num coins current best)
+  (do ((choices (get-choices num coins) (cdr choices))
+       (temp-best best (make-change (- num (* (car choices) (car coins)))
+                               (cdr coins)
+                               (cons (car choices) current)
+                               temp-best)))
+      ((null choices) (update-best num current temp-best))))
 
-;compare number of changes of two coins lists.
-(defun compare-coins (lst1 lst2)
-  (cond ((< (car (last lst1)) (car (last lst2))) lst1)
-        ((> (car (last lst1)) (car (last lst2))) lst2)
-        ((< (reduce #'+ (butlast lst1)) (reduce #'+ (butlast lst2))) lst1)
-        (t lst2)))
+;get choices for each coin.
+(defun get-choices (num coins)
+  (cond ((null coins) nil)
+        ((null (cdr coins)) (list (floor num (car coins))))
+        (t (loop for i from (floor num (car coins)) downto 0 collect i))))
 
-(defun get-changes (num changes)
-  (if (= num 0) changes 
-    (cons num changes)))
-
-;add zero to list
-(defun add-zero (num)
-  (cons 0 num))
-
-;increase coin count
-(defun incf-coin (lst)
-  (incf (car lst)) lst)
+;update best choices.
+(defun update-best (num current best)
+  (cond ((null best) (cons current num))
+        ((< num (cdr best)) (cons current num))
+        ((and (= num (cdr best))
+              (< (reduce #'+ current) (reduce #'+ (car best))))
+         (cons current num))
+        (t best))) 
   
