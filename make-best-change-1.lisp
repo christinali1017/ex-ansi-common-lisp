@@ -19,10 +19,12 @@
 
 ;update best choices.
 (defun update-best (num current best)
-  (cond ((null best) (cons current num))
-        ((< num (cdr best)) (cons current num))
-        ((and (= num (cdr best))
-              (< (reduce #'+ current) (reduce #'+ (car best))))
+  (cond ((or (null best)
+             (< num (cdr best))
+             (and (= num (cdr best))
+                  (< (reduce #'+ current) (reduce #'+ (car best)))))
          (cons current num))
-        (t best))) 
+        (t best)))
+
+  
   
