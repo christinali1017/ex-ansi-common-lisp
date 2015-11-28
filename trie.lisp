@@ -11,35 +11,27 @@
 
 (in-package #:trie)
 
-(defstruct trie (val nil) children)
+(defstruct trie (word nil) children (count 0))
 
 (defun add-word (string trie)
-  (let ((node trie)
-        (chars (coerce string 'list)))
-    (dolist (c chars)
-      (when (null (assoc c (trie-children node)))
-        (push (cons c (make-trie)) (trie-children node)))
-      (setf node (cdr (assoc c (trie-children node)))))
-    (setf (trie-val node) string))
+  (let ((node trie))
+    (mapc #'(lambda (x) 
+              (unless (assoc x (trie-children node)) (push (cons x (make-trie)) (trie-children node)))
+              (incf (trie-count node))
+              (setf node (next-node x node)))
+      (coerce string 'list))
+    (setf (trie-word node) string)
+    (incf (trie-count node)))
   trie)
 
 (defun subtrie (trie &rest chars)
   (let ((node trie))
-    (dolist (c chars)
-      (cond ((assoc c (trie-children node)) (setf node (cdr (assoc c (trie-children node)))))
-             (t (return-from subtrie nil))))
+    (mapc #'(lambda (x) (setf node (next-node x node))) chars) 
     node))
 
-(defun trie-word (trie)
-  (trie-val trie))
-
-(defun trie-count (trie)
-  (let ((count 0))
-    (when (trie-val trie) (incf count))
-    (mapc #'(lambda (x) (incf count (trie-count (cdr x))))
-      (trie-children trie))
-    count))
-
+(defun next-node (c node)
+  (cdr (assoc c (trie-children node))))
+  
 (defun mapc-trie (fn trie)
   (mapc #'(lambda (x) (funcall fn (car x) (cdr x)))
     (trie-children trie)))
