@@ -9,48 +9,49 @@
           :initform 0)
    
    (delim :accessor tokenizer-delim
-          :initarg delim
-          :initform #\space)))
-
+          :initarg :delim
+          :initform #\space)
+   
+   (space-p :accessor space-p
+            :initarg :space
+            :initform t)))
+  
 (defmethod next-token-p ((tk tokenizer))
-  (if (space-p (tokenizer-delim tk)) 
-      (not (= (tokenizer-begin tk) (length (tokenizer-str tk))))
+  (if (space-p tk)
+      (/= (tokenizer-begin tk) (length (tokenizer-str tk)))
     (not (null (tokenizer-begin tk)))))
  
 (defmethod next-token ((tk tokenizer))
   (let* ((end (position (tokenizer-delim tk) (tokenizer-str tk) :start (tokenizer-begin tk)))
          (res (subseq (tokenizer-str tk) (tokenizer-begin tk) end)))
-    (setf (tokenizer-begin tk) (get-begin-index end (tokenizer-str tk) (tokenizer-delim tk)))
+    (setf (tokenizer-begin tk) (get-begin-index end (tokenizer-str tk) (tokenizer-delim tk) tk))
     res))
 
 (defun make-tokenizer (string delim)
-  (let ((tk (make-instance 'tokenizer)))
-    (setf (tokenizer-str tk) string)
-    (setf (tokenizer-begin tk) (init-begin string delim))
-    (setf (tokenizer-delim tk) delim)
-    tk))  
+  (let ((temp (eql #\space delim)))
+  (make-instance 'tokenizer
+    :space temp
+    :str string
+    :begin (init-begin string delim temp)
+    :delim delim)))
 
 ;begin index of next token
-(defun get-begin-index (begin string delim)
+(defun get-begin-index (begin string delim tk)
   (cond ((null begin) nil)
-        ((not (space-p delim)) (1+ begin))
+        ((not (space-p tk)) (1+ begin))
         (t (begin-idx-space begin string))))
 
 ;init begin index
-(defun init-begin (string delim)
-  (if (not (space-p delim)) 0
-    (begin-idx-space 0 string)))
+(defun init-begin (string delim space)
+  (if space
+      (begin-idx-space 0 string)
+    0))
+  
 
 ;begin index when delim is space
 (defun begin-idx-space (begin string)
-  (do* ((res begin (1+ res)))
-       ((or (= res (length string))
-            (not (space-p (char string res))))
-        res)))
-
-;check if delim is space
-(defun space-p (delim)
-  (eql #\space delim))
+  (let ((idx (position-if #'(lambda (x) (not (eql #\space x))) string :start begin)))
+    (or idx (length string))))
 
 ;end index of next token
 (defun end-index (string delim begin)
